@@ -1,0 +1,57 @@
+version: "3.7"
+
+services:
+    nginx:
+        build: ./nginx/
+        ports:
+            - 80:80
+        volumes:
+            - "./www/html:/var/www/html"
+        command: [nginx-debug, '-g', 'daemon off;']
+        networks:
+            - server
+        depends_on:
+            - php
+
+    php:
+        build: ./php/
+        expose:
+            - 9000
+        volumes:
+            - "./www/html:/var/www/html"
+        networks:
+            - database
+            - server
+        depends_on:
+            - mysql
+
+    mysql:
+        image: mysql:latest
+        volumes:
+            - data:/var/lib/mysql
+        networks:
+            - database
+        environment:
+            MYSQL_ROOT_PASSWORD: "secret"
+            MYSQL_DATABASE: "MyTravelHub"
+            MYSQL_USER: "teaweb"
+            MYSQL_PASSWORD: "teaweb"
+        command: --default-authentication-plugin=mysql_native_password
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        ports:
+            - 8080:80
+        networks:
+            - database
+        depends_on:
+            - mysql
+        environment:
+            PMA_HOST: mysql
+
+volumes:
+    data:
+
+networks:
+    database:
+    server:
